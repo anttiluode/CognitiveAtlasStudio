@@ -151,5 +151,9 @@ This project explores the intersection of:
 - Memory consolidation and cognitive mapping
 - Autonomous agents and creative collaboration
 
+Inspired by ton of papers and endless back and forth between AI's and me. The left right theta sweep paper: 
+
+https://www.nature.com/articles/s41586-024-08527-1.pdf
+
 The work draws inspiration from research on hippocampal function, predictive processing, and the role of theta rhythms in spatial navigation and memory formation.
 
