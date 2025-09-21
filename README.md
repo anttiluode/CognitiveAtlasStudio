@@ -1,5 +1,9 @@
 # Cognitive Atlas Studio: AI World-Builder & Storyboard Generator
 
+Video about it (I might not keep it up long): 
+
+https://youtu.be/SHEkJ72S81M
+
 An interactive application featuring a neuro-inspired AI agent ("Neo") that autonomously explores generative latent spaces, builds cognitive maps of its discoveries, and creates animated storyboards between concepts.
 
 ## Overview
