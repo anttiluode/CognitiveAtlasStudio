@@ -33,7 +33,7 @@ The Cognitive Atlas Studio combines neuroscience-inspired algorithms with genera
 This repository contains three main components:
 
 1. **`Neo_Unified3.py`** - Core cognitive architecture and AI agent
-2. **`Matrix_Studio2.py`** - Cognitive Atlas Studio GUI application  
+2. **`CognitiveAtlasStudio.py`** - Cognitive Atlas Studio GUI application  
 3. **`Matrix7.py`** - Formless VAE explorer with temporal stabilization
 
 ## Installation
@@ -44,6 +44,8 @@ pip install torch torchvision diffusers transformers
 pip install numpy opencv-python pillow scikit-learn
 pip install matplotlib networkx tkinter
 ```
+Does use Triton Monkeypatch, which may turn out to be a pain in the ass 
+to install as I have it. 
 
 ### GPU Requirements
 - CUDA-compatible GPU recommended for real-time performance
@@ -54,7 +56,7 @@ pip install matplotlib networkx tkinter
 
 ### Running the Cognitive Atlas Studio
 
-**Important**: `Matrix_Studio2.py` requires `Neo_Unified3.py` to be in the same folder.
+**Important**: `CognitiveAtlasStudio.py` requires `Neo_Unified3.py` to be in the same folder.
 
 ```bash
 python Matrix_Studio2.py
