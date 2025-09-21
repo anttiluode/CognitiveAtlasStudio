@@ -6,6 +6,15 @@ https://youtu.be/SHEkJ72S81M
 
 An interactive application featuring a neuro-inspired AI agent ("Neo") that autonomously explores generative latent spaces, builds cognitive maps of its discoveries, and creates animated storyboards between concepts.
 
+**Neo Unified System Architecture** 
+![Neo Unified System Architecture](NeoUnified.png)
+
+**Cognitive Atlas Explorer Visualization**
+![Cognitive Atlas Explorer Visualization](cognitiveatalsexplorer.png)
+
+**Matrix7 VAE Interface**
+![Matrix7 VAE Interface](matrix7.png)
+
 ## Overview
 
 The Cognitive Atlas Studio combines neuroscience-inspired algorithms with generative AI to create an autonomous creative agent. Instead of simply responding to prompts, Neo actively explores conceptual spaces, forms memories, and builds a structured understanding that can be used for creative collaboration.
