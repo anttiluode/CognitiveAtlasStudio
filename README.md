@@ -1,4 +1,4 @@
-# Cognitive Atlas Studio: AI World-Builder & Storyboard Generator
+# Cognitive Atlas Studio: AI World-Builder & Storyboard Generator (vibecoded)
 
 Video about it (I might not keep it up long): 
 
