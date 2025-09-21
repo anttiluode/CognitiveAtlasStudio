@@ -10,7 +10,7 @@ An interactive application featuring a neuro-inspired AI agent ("Neo") that auto
 ![Neo Unified System Architecture](NeoUnified.png)
 
 **Cognitive Atlas Explorer Visualization**
-![Cognitive Atlas Explorer Visualization](cognitiveatalsexplorer.png)
+![Cognitive Atlas Explorer Visualization](cognitiveatlasexplorer.png)
 
 **Matrix7 VAE Interface**
 ![Matrix7 VAE Interface](matrix7.png)
