@@ -58,7 +58,8 @@ pip install numpy opencv-python pillow scikit-learn
 pip install matplotlib networkx tkinter
 ```
 Does use Triton Monkeypatch, which may turn out to be a pain in the ass 
-to install as I have it. 
+to install as I have it. You guys might have to drop things to ai and ask it to make things 
+work for you. 
 
 ### GPU Requirements
 - CUDA-compatible GPU recommended for real-time performance
