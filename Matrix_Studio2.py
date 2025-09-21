@@ -212,7 +212,7 @@ class WorldBuilder:
         
         return stats
     
-    def generate_landmark_image(self, landmark_id):
+    def generate_landmark_image(self, landmark_id, use_diffusion=True):
         """Generate high-res image from a landmark"""
         if not self.current_world:
             return None
@@ -221,14 +221,35 @@ class WorldBuilder:
         if landmark_id not in atlas.nodes:
             return None
         
-        latent = atlas.nodes[landmark_id]['latent']
-        latent_tensor = torch.tensor(latent, device=device, dtype=torch.float32)  # Force float32
-        
-        # Decode through VAE
-        with torch.no_grad():
-            # Reshape for VAE (assuming 4x32x32 latent)
-            latent_4d = latent_tensor.view(1, 4, 32, 32)
-            image_tensor = self.vae.decode(latent_4d / 0.18215).sample
+        if use_diffusion and hasattr(self, 'pipeline'):
+            # Use Stable Diffusion pipeline for coherent images
+            # Start with a noise image
+            init_image = Image.new('RGB', (512, 512), color='gray')
+            
+            # Use the theme as prompt with some variation
+            prompt = f"{self.current_world['theme']}, highly detailed, photorealistic"
+            
+            # Generate using img2img with high strength
+            with torch.no_grad():
+                image = self.pipeline(
+                    prompt=prompt,
+                    image=init_image,
+                    strength=0.95,  # High strength for more variation
+                    guidance_scale=7.5,
+                    num_inference_steps=50
+                ).images[0]
+            
+            # Convert PIL to numpy
+            image_np = np.array(image)
+            return image_np
+        else:
+            # Fallback to raw VAE decode (will be noisy)
+            latent = atlas.nodes[landmark_id]['latent']
+            latent_tensor = torch.tensor(latent, device=device, dtype=torch.float32)
+            
+            with torch.no_grad():
+                latent_4d = latent_tensor.view(1, 4, 32, 32)
+                image_tensor = self.vae.decode(latent_4d / 0.18215).sample
             
         # Convert to numpy
         image = image_tensor[0].cpu().permute(1, 2, 0).numpy()
@@ -281,24 +302,63 @@ class WorldBuilder:
         
         return storyboard_data
     
-    def export_to_video(self, storyboard, output_path, fps=30):
-        """Export storyboard to video file"""
+    def export_to_video(self, storyboard, output_path, fps=30, use_diffusion=True):
+        """Export storyboard to video file with option for coherent images"""
         if not storyboard or not storyboard['frames']:
             return False
         
         # Generate images for all frames
         frames_with_images = []
-        for frame in storyboard['frames']:
-            if frame.image is None:
-                # Decode latent to image
-                latent_tensor = torch.tensor(
-                    frame.latent_vector, 
-                    device=device, 
-                    dtype=torch.float32  # Always use float32 for VAE
-                ).view(1, 4, 32, 32)
+        
+        if use_diffusion and hasattr(self, 'pipeline'):
+            # Use Stable Diffusion for coherent video
+            prompt = f"{self.current_world['theme']}, cinematic, detailed"
+            
+            for i, frame in enumerate(storyboard['frames']):
+                if frame.image is None:
+                    # Create seed image from latent
+                    latent_tensor = torch.tensor(
+                        frame.latent_vector, 
+                        device=device, 
+                        dtype=torch.float32
+                    ).view(1, 4, 32, 32)
+                    
+                    with torch.no_grad():
+                        # First decode to get a base image
+                        base_img_tensor = self.vae.decode(latent_tensor / 0.18215).sample
+                        base_img = base_img_tensor[0].cpu().permute(1, 2, 0).numpy()
+                        base_img = ((base_img * 0.5 + 0.5) * 255).clip(0, 255).astype(np.uint8)
+                        
+                        # Convert to PIL for SD pipeline
+                        pil_img = Image.fromarray(base_img).resize((512, 512))
+                        
+                        # Generate coherent image using SD
+                        # Use lower strength to maintain continuity
+                        coherent_img = self.pipeline(
+                            prompt=prompt,
+                            image=pil_img,
+                            strength=0.7,  # Lower strength for smoother transitions
+                            guidance_scale=7.5,
+                            num_inference_steps=20  # Fewer steps for speed
+                        ).images[0]
+                        
+                        # Convert back to numpy
+                        frame.image = np.array(coherent_img.resize((512, 512)))
                 
-                with torch.no_grad():
-                    img_tensor = self.vae.decode(latent_tensor / 0.18215).sample
+                frames_with_images.append(frame.image)
+                
+        else:
+            # Fallback to raw VAE decode
+            for frame in storyboard['frames']:
+                if frame.image is None:
+                    latent_tensor = torch.tensor(
+                        frame.latent_vector, 
+                        device=device, 
+                        dtype=torch.float32
+                    ).view(1, 4, 32, 32)
+                    
+                    with torch.no_grad():
+                        img_tensor = self.vae.decode(latent_tensor / 0.18215).sample
                 
                 img = img_tensor[0].cpu().permute(1, 2, 0).numpy()
                 img = ((img * 0.5 + 0.5) * 255).clip(0, 255).astype(np.uint8)
@@ -590,26 +650,42 @@ class CognitiveAtlasStudioUI:
 def main():
     """Launch the Cognitive Atlas Studio"""
     
-    # Load VAE model (same as in Neo)
+    # Load models
     try:
-        from diffusers import AutoencoderKL
-        # Force VAE to float32 to avoid dtype mismatches
+        from diffusers import AutoencoderKL, StableDiffusionImg2ImgPipeline
+        
+        # Load VAE
         vae = AutoencoderKL.from_pretrained(
             "stabilityai/stable-diffusion-2-1-base",
             subfolder="vae",
             torch_dtype=torch.float32  # Always use float32 for VAE
         ).to(device)
         vae.eval()
+        
+        # Load full Stable Diffusion pipeline for coherent image generation
+        print("Loading Stable Diffusion pipeline for coherent images...")
+        pipeline = StableDiffusionImg2ImgPipeline.from_pretrained(
+            "stabilityai/stable-diffusion-2-1-base",
+            torch_dtype=torch.float32,
+            safety_checker=None,
+            requires_safety_checker=False
+        ).to(device)
+        
     except Exception as e:
-        print(f"Could not load VAE: {e}")
+        print(f"Could not load models: {e}")
         return
     
-    # Create Neo system
+    # Create Neo system with pipeline
     neo = TemporalPredictiveSweepingSystem(vae)
+    
+    # Create world builder with pipeline
+    world_builder = WorldBuilder(neo, vae)
+    world_builder.pipeline = pipeline  # Add SD pipeline for coherent images
     
     # Launch UI
     root = tk.Tk()
     app = CognitiveAtlasStudioUI(root, neo, vae)
+    app.world_builder = world_builder  # Use our enhanced world builder
     
     print("=" * 60)
     print("COGNITIVE ATLAS STUDIO")
@@ -624,6 +700,6 @@ def main():
     print()
     
     root.mainloop()
-
+    
 if __name__ == "__main__":
     main()
