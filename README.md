@@ -6,6 +6,8 @@ Added AFC6.py per this video:
 
 https://youtu.be/HYuLPGdiBBI
 
+(The gating attractor / moire field - were sort of pre "Neo") 
+
 Video about it (I might not keep it up long): 
 
 https://youtu.be/SHEkJ72S81M
