@@ -1,5 +1,11 @@
 # Cognitive Atlas Studio: AI World-Builder & Storyboard Generator (vibecoded)
 
+EDIT: 
+
+Added AFC6.py per this video: 
+
+https://youtu.be/HYuLPGdiBBI
+
 Video about it (I might not keep it up long): 
 
 https://youtu.be/SHEkJ72S81M
